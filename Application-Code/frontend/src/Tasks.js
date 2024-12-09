@@ -12,9 +12,11 @@ class Tasks extends Component {
     async componentDidMount() {
         try {
             const { data } = await getTasks();
-            this.setState({ tasks: data });
+            console.log("Fetched data:", data); // Debugging
+            this.setState({ tasks: Array.isArray(data) ? data : [] });
         } catch (error) {
-            console.log(error);
+            console.error("Error fetching tasks:", error.response?.data || error.message);
+            this.setState({ tasks: [] });
         }
     }
 
@@ -27,11 +29,10 @@ class Tasks extends Component {
         const originalTasks = this.state.tasks;
         try {
             const { data } = await addTask({ task: this.state.currentTask });
-            const tasks = originalTasks;
-            tasks.push(data);
+            const tasks = [...originalTasks, data]; // Avoid direct mutation
             this.setState({ tasks, currentTask: "" });
         } catch (error) {
-            console.log(error);
+            console.error("Error adding task:", error.response?.data || error.message);
         }
     };
 
@@ -47,8 +48,8 @@ class Tasks extends Component {
                 completed: tasks[index].completed,
             });
         } catch (error) {
-            this.setState({ tasks: originalTasks });
-            console.log(error);
+            this.setState({ tasks: originalTasks }); // Rollback state
+            console.error("Error updating task:", error.response?.data || error.message);
         }
     };
 
@@ -61,8 +62,8 @@ class Tasks extends Component {
             this.setState({ tasks });
             await deleteTask(currentTask);
         } catch (error) {
-            this.setState({ tasks: originalTasks });
-            console.log(error);
+            this.setState({ tasks: originalTasks }); // Rollback state
+            console.error("Error deleting task:", error.response?.data || error.message);
         }
     };
 }
